@@ -1,39 +1,28 @@
-import { DashboardOverview } from "@/components/dashboard-overview"
-import { DoraMetrics } from "@/components/dora-metrics"
+import { CardContent } from "@/components/ui/card"
+import { CardTitle } from "@/components/ui/card"
+import { CardHeader } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { ExecutiveDashboard } from "@/components/executive-dashboard"
 import { RecentProvisionings } from "@/components/recent-provisionings"
-import { DemoControls } from "@/components/demo-controls"
+import { DoraMetrics } from "@/components/dora-metrics"
+import { DashboardOverview } from "@/components/dashboard-overview"
 
-export default function HomePage() {
+export default function DashboardPage() {
   return (
-    <>
-      <div className="flex-1 space-y-8 p-8 wide-content">
-        <div className="flex items-center justify-between min-w-max">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight">Infrastructure Provisioning Portal</h1>
-            <p className="text-xl text-muted-foreground mt-2">Starbucks Internal Developer Platform</p>
-          </div>
-          <div className="text-right">
-            <div className="text-lg font-medium">Welcome back, John Doe</div>
-            <div className="text-base text-muted-foreground">Starbucks Technology Team</div>
-          </div>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 min-w-max">
-          <DashboardOverview />
-        </div>
-
-        <div className="grid gap-8 lg:grid-cols-2 min-w-max">
-          <DoraMetrics />
-          <ExecutiveDashboard />
-        </div>
-
-        <div className="min-w-max">
-          <RecentProvisionings />
-        </div>
+    <div className="flex-1 space-y-8 p-8 pt-6 wide-content">
+      <DashboardOverview />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 min-w-max">
+        <Card className="col-span-4">
+          <CardHeader>
+            <CardTitle>Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="pl-2">
+            <ExecutiveDashboard />
+          </CardContent>
+        </Card>
+        <RecentProvisionings className="col-span-3" />
       </div>
-
-      <DemoControls />
-    </>
+      <DoraMetrics />
+    </div>
   )
 }

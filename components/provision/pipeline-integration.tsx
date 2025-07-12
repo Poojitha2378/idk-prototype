@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, Clock, AlertCircle, ExternalLink, Download } from "lucide-react"
 import { useState, useEffect } from "react"
-import Link from "next/link"
+import { useRouter } from "next/navigation" // Import useRouter
 
 interface PipelineStage {
   id: string
@@ -22,6 +22,7 @@ interface PipelineIntegrationProps {
 }
 
 export function PipelineIntegration({ onPrev }: PipelineIntegrationProps) {
+  const router = useRouter() // Initialize useRouter
   const [pipelineStages, setPipelineStages] = useState<PipelineStage[]>([
     {
       id: "build",
@@ -120,14 +121,31 @@ export function PipelineIntegration({ onPrev }: PipelineIntegrationProps) {
       }, 300)
 
       // Complete the stage after 3 seconds
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
+        // Store timeout ID
         clearInterval(interval)
         setCurrentStageIndex((prev) => prev + 1)
       }, 3000)
 
-      return () => clearInterval(interval)
+      return () => {
+        // Cleanup function
+        clearInterval(interval)
+        clearTimeout(timeout) // Clear timeout on unmount or re-run
+      }
     }
-  }, [isRunning, currentStageIndex])
+  }, [isRunning, currentStageIndex]) // Removed pipelineStages.length from dependencies
+
+  const allCompleted = pipelineStages.every((stage) => stage.status === "completed")
+
+  // New useEffect to automatically navigate when all pipelines are complete
+  useEffect(() => {
+    if (allCompleted) {
+      const timer = setTimeout(() => {
+        router.push("/onboarding-success") // Navigate to the onboarding success page
+      }, 2000) // Small delay for better UX before navigating
+      return () => clearTimeout(timer)
+    }
+  }, [allCompleted, router])
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -155,8 +173,6 @@ export function PipelineIntegration({ onPrev }: PipelineIntegrationProps) {
     }
   }
 
-  const allCompleted = pipelineStages.every((stage) => stage.status === "completed")
-
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -168,11 +184,11 @@ export function PipelineIntegration({ onPrev }: PipelineIntegrationProps) {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Pipeline: {pipelineId}</CardTitle>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" disabled={!allCompleted}>
               <ExternalLink className="h-4 w-4 mr-2" />
               View in Azure DevOps
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" disabled={!allCompleted}>
               <Download className="h-4 w-4 mr-2" />
               Download Logs
             </Button>
@@ -221,12 +237,7 @@ export function PipelineIntegration({ onPrev }: PipelineIntegrationProps) {
                   All Azure resources have been successfully provisioned and deployed.
                 </p>
               </div>
-              <div className="flex justify-center gap-4">
-                <Button asChild className="bg-starbucks-green hover:bg-starbucks-dark-green">
-                  <Link href="/onboarding-success">Complete Onboarding</Link>
-                </Button>
-                <Button variant="outline">Download Summary</Button>
-              </div>
+              {/* Removed manual "Complete Onboarding" button as navigation is automatic */}
             </div>
           </CardContent>
         </Card>
@@ -236,7 +247,7 @@ export function PipelineIntegration({ onPrev }: PipelineIntegrationProps) {
         <Button variant="outline" onClick={onPrev} disabled={isRunning && !allCompleted}>
           Previous
         </Button>
-        {allCompleted && <Button>Create New Request</Button>}
+        {allCompleted && <Button disabled>Provisioning Complete!</Button>} {/* Disabled button for clarity */}
       </div>
     </div>
   )
