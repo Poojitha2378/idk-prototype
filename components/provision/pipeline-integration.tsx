@@ -1,254 +1,218 @@
 "use client"
 
+import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Clock, AlertCircle, ExternalLink, Download } from "lucide-react"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation" // Import useRouter
-
-interface PipelineStage {
-  id: string
-  name: string
-  status: "pending" | "running" | "completed" | "failed"
-  progress: number
-  duration: string
-  logs: string[]
-}
+import { CheckCircle2, XCircle, Loader2 } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 interface PipelineIntegrationProps {
   onPrev: () => void
 }
 
+const initialPipelineSteps = [
+  {
+    id: 1,
+    name: "Build Application",
+    status: "pending" as "pending" | "in-progress" | "completed" | "failed",
+    progress: 0,
+  },
+  {
+    id: 2,
+    name: "Run Unit Tests",
+    status: "pending" as "pending" | "in-progress" | "completed" | "failed",
+    progress: 0,
+  },
+  {
+    id: 3,
+    name: "Security Scan",
+    status: "pending" as "pending" | "in-progress" | "completed" | "failed",
+    progress: 0,
+  },
+  {
+    id: 4,
+    name: "Deploy to Azure",
+    status: "pending" as "pending" | "in-progress" | "completed" | "failed",
+    progress: 0,
+  },
+  {
+    id: 5,
+    name: "Post-Deployment Verification",
+    status: "pending" as "pending" | "in-progress" | "completed" | "failed",
+    progress: 0,
+  },
+]
+
 export function PipelineIntegration({ onPrev }: PipelineIntegrationProps) {
-  const router = useRouter() // Initialize useRouter
-  const [pipelineStages, setPipelineStages] = useState<PipelineStage[]>([
-    {
-      id: "build",
-      name: "Build",
-      status: "pending",
-      progress: 0,
-      duration: "0s",
-      logs: [],
-    },
-    {
-      id: "test",
-      name: "Test",
-      status: "pending",
-      progress: 0,
-      duration: "0s",
-      logs: [],
-    },
-    {
-      id: "security",
-      name: "Security Scan",
-      status: "pending",
-      progress: 0,
-      duration: "0s",
-      logs: [],
-    },
-    {
-      id: "deploy",
-      name: "Deploy",
-      status: "pending",
-      progress: 0,
-      duration: "0s",
-      logs: [],
-    },
-  ])
+  const router = useRouter()
+  const [pipelineSteps, setPipelineSteps] = useState(initialPipelineSteps)
+  const [overallProgress, setOverallProgress] = useState(0)
+  const [isPipelineRunning, setIsPipelineRunning] = useState(false)
+  const currentStepIndexRef = useRef(0)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const [currentStageIndex, setCurrentStageIndex] = useState(0)
-  const [isRunning, setIsRunning] = useState(false)
-  const [pipelineId] = useState("PL-2024-001")
-
+  // Effect to manage the pipeline process
   useEffect(() => {
-    // Auto-start the pipeline
-    if (!isRunning) {
-      setIsRunning(true)
+    // Clear any existing timers to prevent multiple instances
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+
+    if (!isPipelineRunning || currentStepIndexRef.current >= initialPipelineSteps.length) {
+      return // Stop if pipeline is not running or all steps are done
     }
-  }, [])
 
-  useEffect(() => {
-    if (isRunning && currentStageIndex < pipelineStages.length) {
-      const currentStage = pipelineStages[currentStageIndex]
+    const currentStepIndex = currentStepIndexRef.current
 
-      // Start the current stage
-      setPipelineStages((prev) =>
-        prev.map((stage, index) =>
-          index === currentStageIndex
-            ? {
-                ...stage,
-                status: "running",
-                logs: [`Starting ${stage.name} stage...`, `Initializing environment...`],
-              }
-            : stage,
+    // Set current step to 'in-progress'
+    setPipelineSteps((prevSteps) =>
+      prevSteps.map((step, index) => (index === currentStepIndex ? { ...step, status: "in-progress" } : step)),
+    )
+
+    // Simulate progress for the current step
+    intervalRef.current = setInterval(() => {
+      setPipelineSteps((prevSteps) =>
+        prevSteps.map((step, index) => {
+          if (index === currentStepIndex) {
+            const newProgress = Math.min(step.progress + 10, 100)
+            return { ...step, progress: newProgress }
+          }
+          return step
+        }),
+      )
+    }, 200)
+
+    // Simulate completion of the current step
+    timeoutRef.current = setTimeout(() => {
+      if (intervalRef.current) clearInterval(intervalRef.current) // Clear interval for this step
+
+      setPipelineSteps((prevSteps) =>
+        prevSteps.map((step, index) =>
+          index === currentStepIndex ? { ...step, status: "completed", progress: 100 } : step,
         ),
       )
 
-      // Simulate stage progress
-      const interval = setInterval(() => {
-        setPipelineStages((prev) =>
-          prev.map((stage, index) => {
-            if (index === currentStageIndex) {
-              const newProgress = Math.min(stage.progress + 10, 100)
-              const newLogs = [...stage.logs]
+      currentStepIndexRef.current += 1 // Move to the next step
 
-              // Add realistic log messages
-              if (newProgress === 30) {
-                newLogs.push(`${stage.name} dependencies resolved`)
-              } else if (newProgress === 60) {
-                newLogs.push(`${stage.name} execution in progress`)
-              } else if (newProgress === 90) {
-                newLogs.push(`${stage.name} validation successful`)
-              }
+      // Update overall progress
+      setOverallProgress(Math.floor((currentStepIndexRef.current / initialPipelineSteps.length) * 100))
 
-              if (newProgress === 100) {
-                newLogs.push(`${stage.name} completed successfully`)
-                return {
-                  ...stage,
-                  status: "completed",
-                  progress: 100,
-                  duration: `${Math.floor(Math.random() * 60) + 30}s`,
-                  logs: newLogs,
-                }
-              }
-              return { ...stage, progress: newProgress, logs: newLogs }
-            }
-            return stage
-          }),
-        )
-      }, 300)
-
-      // Complete the stage after 3 seconds
-      const timeout = setTimeout(() => {
-        // Store timeout ID
-        clearInterval(interval)
-        setCurrentStageIndex((prev) => prev + 1)
-      }, 3000)
-
-      return () => {
-        // Cleanup function
-        clearInterval(interval)
-        clearTimeout(timeout) // Clear timeout on unmount or re-run
+      // If all steps are completed, stop pipeline
+      if (currentStepIndexRef.current >= initialPipelineSteps.length) {
+        setIsPipelineRunning(false)
       }
+    }, 2000) // Each step takes 2 seconds
+
+    // Cleanup function for this effect instance
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      intervalRef.current = null
+      timeoutRef.current = null
     }
-  }, [isRunning, currentStageIndex]) // Removed pipelineStages.length from dependencies
+  }, [isPipelineRunning, currentStepIndexRef.current]) // Dependencies for this effect
 
-  const allCompleted = pipelineStages.every((stage) => stage.status === "completed")
-
-  // New useEffect to automatically navigate when all pipelines are complete
+  // Effect to navigate when pipeline is complete
   useEffect(() => {
-    if (allCompleted) {
-      const timer = setTimeout(() => {
-        router.push("/onboarding-success") // Navigate to the onboarding success page
-      }, 2000) // Small delay for better UX before navigating
-      return () => clearTimeout(timer)
+    if (!isPipelineRunning && overallProgress === 100) {
+      const finalNavigationTimeout = setTimeout(() => {
+        router.push("/onboarding-success")
+      }, 1000) // Small delay before navigating
+      return () => clearTimeout(finalNavigationTimeout)
     }
-  }, [allCompleted, router])
+  }, [isPipelineRunning, overallProgress, router])
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle className="h-5 w-5 text-green-600" />
-      case "running":
-        return <Clock className="h-5 w-5 text-blue-600 animate-spin" />
-      case "failed":
-        return <AlertCircle className="h-5 w-5 text-red-600" />
-      default:
-        return <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
-    }
+  const startPipeline = () => {
+    setPipelineSteps(initialPipelineSteps.map((step) => ({ ...step, progress: 0, status: "pending" })))
+    setOverallProgress(0)
+    currentStepIndexRef.current = 0
+    setIsPipelineRunning(true)
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <Badge className="bg-green-100 text-green-800">Completed</Badge>
-      case "running":
-        return <Badge className="bg-blue-100 text-blue-800">Running</Badge>
-      case "failed":
-        return <Badge className="bg-red-100 text-red-800">Failed</Badge>
-      default:
-        return <Badge variant="outline">Pending</Badge>
-    }
-  }
+  const allStepsCompleted = pipelineSteps.every((step) => step.status === "completed")
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold">Pipeline Integration</h2>
-        <p className="text-muted-foreground mt-2">Azure DevOps pipeline execution and monitoring</p>
-      </div>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Pipeline: {pipelineId}</CardTitle>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled={!allCompleted}>
-              <ExternalLink className="h-4 w-4 mr-2" />
-              View in Azure DevOps
-            </Button>
-            <Button variant="outline" size="sm" disabled={!allCompleted}>
-              <Download className="h-4 w-4 mr-2" />
-              Download Logs
-            </Button>
+    <Card className="w-full max-w-4xl mx-auto shadow-lg">
+      <CardHeader className="bg-starbucks-dark-green text-white rounded-t-lg p-6">
+        <CardTitle className="text-2xl font-bold">Pipeline Integration</CardTitle>
+        <p className="text-starbucks-cream/80">Automating your deployment with our integrated CI/CD pipelines.</p>
+      </CardHeader>
+      <CardContent className="p-6 space-y-6">
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
+            <span>Overall Pipeline Progress</span>
+            <span>{Math.round(overallProgress)}%</span>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {pipelineStages.map((stage, index) => (
-            <div key={stage.id} className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {getStatusIcon(stage.status)}
-                  <span className="font-medium">{stage.name}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {stage.duration !== "0s" && `(${stage.duration})`}
-                  </span>
-                </div>
-                {getStatusBadge(stage.status)}
+          <Progress
+            value={overallProgress}
+            className="h-2 bg-starbucks-green/20"
+            indicatorClassName="bg-starbucks-green"
+          />
+        </div>
+        <div className="space-y-4">
+          {pipelineSteps.map((step) => (
+            <div
+              key={step.id}
+              className="flex items-center justify-between p-3 border rounded-md bg-gray-50 dark:bg-gray-800"
+            >
+              <div className="flex items-center gap-3">
+                {step.status === "completed" && <CheckCircle2 className="h-5 w-5 text-green-500" />}
+                {step.status === "failed" && <XCircle className="h-5 w-5 text-red-500" />}
+                {(step.status === "pending" || step.status === "in-progress") && (
+                  <Loader2
+                    className={cn("h-5 w-5 text-gray-500 animate-spin", {
+                      "text-starbucks-green": step.status === "in-progress",
+                    })}
+                  />
+                )}
+                <span
+                  className={cn("font-medium", {
+                    "text-gray-500 dark:text-gray-400": step.status === "pending",
+                    "text-starbucks-dark-green dark:text-starbucks-cream": step.status === "completed",
+                    "text-red-600 dark:text-red-400": step.status === "failed",
+                  })}
+                >
+                  {step.name}
+                </span>
               </div>
-
-              {stage.status === "running" && <Progress value={stage.progress} className="h-2" />}
-
-              {stage.logs.length > 0 && (
-                <div className="ml-8 p-3 bg-gray-50 rounded-md">
-                  <div className="text-xs font-mono space-y-1">
-                    {stage.logs.map((log, logIndex) => (
-                      <div key={logIndex} className="text-gray-700">
-                        <span className="text-gray-500">[{new Date().toLocaleTimeString()}]</span> {log}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              {step.status === "completed" && (
+                <span className="text-sm text-gray-600 dark:text-gray-400">Completed</span>
               )}
+              {step.status === "in-progress" && (
+                <span className="text-sm text-starbucks-green">In Progress ({Math.round(step.progress)}%)</span>
+              )}
+              {step.status === "pending" && <span className="text-sm text-gray-500 dark:text-gray-400">Pending</span>}
             </div>
           ))}
-        </CardContent>
-      </Card>
-
-      {allCompleted && (
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="pt-6">
-            <div className="text-center space-y-4">
-              <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
-              <div>
-                <h3 className="text-lg font-semibold text-green-800">Infrastructure Provisioning Completed!</h3>
-                <p className="text-green-700 mt-2">
-                  All Azure resources have been successfully provisioned and deployed.
-                </p>
-              </div>
-              {/* Removed manual "Complete Onboarding" button as navigation is automatic */}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onPrev} disabled={isRunning && !allCompleted}>
-          Previous
-        </Button>
-        {allCompleted && <Button disabled>Provisioning Complete!</Button>} {/* Disabled button for clarity */}
-      </div>
-    </div>
+        </div>
+        <div className="flex justify-between pt-4">
+          <Button
+            variant="outline"
+            onClick={onPrev}
+            className="text-starbucks-dark-green border-starbucks-green hover:bg-starbucks-green/10 bg-transparent"
+            disabled={isPipelineRunning}
+          >
+            Previous
+          </Button>
+          {!isPipelineRunning && !allStepsCompleted && (
+            <Button onClick={startPipeline} className="bg-starbucks-green hover:bg-starbucks-dark-green">
+              Start Pipeline
+            </Button>
+          )}
+          {isPipelineRunning && (
+            <Button disabled className="bg-starbucks-green/50">
+              Running Pipeline...
+            </Button>
+          )}
+          {allStepsCompleted && (
+            <Button disabled className="bg-starbucks-green">
+              Pipeline Complete!
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   )
 }

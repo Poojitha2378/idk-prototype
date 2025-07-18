@@ -1,88 +1,136 @@
 "use client"
 
-import { CheckCircle, XCircle, Loader2 } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Button } from "@/components/ui/button"
-import { useEffect, useState, useRef } from "react"
+import { CheckCircle2, XCircle, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 interface AzureValidationProps {
   onNext: () => void
-  onPrev: () => void // Changed from onBack to onPrev for consistency with page.tsx
+  onPrev: () => void
 }
 
-const validationStepsData = [
-  // Renamed to avoid conflict with state variable
-  { id: "resourceGroup", name: "Resource Group Availability", status: "pending" },
-  { id: "networkConfig", name: "Network Configuration Check", status: "pending" },
-  { id: "permissions", name: "Azure Permissions Validation", status: "pending" },
-  { id: "quota", name: "Subscription Quota Check", status: "pending" },
-  { id: "namingConvention", name: "Naming Convention Adherence", status: "pending" },
+const initialValidationSteps = [
+  {
+    id: 1,
+    name: "Azure Subscription Check",
+    status: "pending" as "pending" | "in-progress" | "completed" | "failed",
+    progress: 0,
+  },
+  {
+    id: 2,
+    name: "Resource Group Availability",
+    status: "pending" as "pending" | "in-progress" | "completed" | "failed",
+    progress: 0,
+  },
+  {
+    id: 3,
+    name: "Network Configuration Validation",
+    status: "pending" as "pending" | "in-progress" | "completed" | "failed",
+    progress: 0,
+  },
+  {
+    id: 4,
+    name: "Service Principal Permissions",
+    status: "pending" as "pending" | "in-progress" | "completed" | "failed",
+    progress: 0,
+  },
+  {
+    id: 5,
+    name: "Quota and Limits Check",
+    status: "pending" as "pending" | "in-progress" | "completed" | "failed",
+    progress: 0,
+  },
 ]
 
 export function AzureValidation({ onNext, onPrev }: AzureValidationProps) {
-  const [steps, setSteps] = useState(validationStepsData)
-  const [progress, setProgress] = useState(0)
-  const [allCompleted, setAllCompleted] = useState(false)
-  const [isValidating, setIsValidating] = useState(false) // Added isValidating state
+  const [validationSteps, setValidationSteps] = useState(initialValidationSteps)
+  const [overallProgress, setOverallProgress] = useState(0)
+  const [isValidationRunning, setIsValidationRunning] = useState(false)
+  const currentStepIndexRef = useRef(0)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Effect to manage the validation process
   useEffect(() => {
-    if (isValidating && !allCompleted) {
-      // Only run if validating and not already completed
-      let currentStepIndex = 0
-      const totalSteps = validationStepsData.length
+    // Clear any existing timers to prevent multiple instances
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
 
-      intervalRef.current = setInterval(() => {
-        if (currentStepIndex < totalSteps) {
-          setSteps((prevSteps) => {
-            const newSteps = [...prevSteps]
-            // Simulate success for current step
-            newSteps[currentStepIndex] = { ...newSteps[currentStepIndex], status: "completed" }
-            return newSteps
-          })
-          currentStepIndex++
-          setProgress(Math.floor((currentStepIndex / totalSteps) * 100))
-        } else {
-          clearInterval(intervalRef.current!)
-          setAllCompleted(true)
-          setIsValidating(false) // Stop validating once all steps are done
-        }
-      }, 1000) // Simulate each step taking 1 second
+    if (!isValidationRunning || currentStepIndexRef.current >= initialValidationSteps.length) {
+      return // Stop if validation is not running or all steps are done
     }
 
+    const currentStepIndex = currentStepIndexRef.current
+
+    // Set current step to 'in-progress'
+    setValidationSteps((prevSteps) =>
+      prevSteps.map((step, index) => (index === currentStepIndex ? { ...step, status: "in-progress" } : step)),
+    )
+
+    // Simulate progress for the current step
+    intervalRef.current = setInterval(() => {
+      setValidationSteps((prevSteps) =>
+        prevSteps.map((step, index) => {
+          if (index === currentStepIndex) {
+            const newProgress = Math.min(step.progress + 10, 100)
+            return { ...step, progress: newProgress }
+          }
+          return step
+        }),
+      )
+    }, 200)
+
+    // Simulate completion of the current step
+    timeoutRef.current = setTimeout(() => {
+      if (intervalRef.current) clearInterval(intervalRef.current) // Clear interval for this step
+
+      setValidationSteps((prevSteps) =>
+        prevSteps.map((step, index) =>
+          index === currentStepIndex ? { ...step, status: "completed", progress: 100 } : step,
+        ),
+      )
+
+      currentStepIndexRef.current += 1 // Move to the next step
+
+      // Update overall progress
+      setOverallProgress(Math.floor((currentStepIndexRef.current / initialValidationSteps.length) * 100))
+
+      // If all steps are completed, stop validation
+      if (currentStepIndexRef.current >= initialValidationSteps.length) {
+        setIsValidationRunning(false)
+      }
+    }, 2000) // Each step takes 2 seconds
+
+    // Cleanup function for this effect instance
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      intervalRef.current = null
+      timeoutRef.current = null
     }
-  }, [isValidating, allCompleted]) // Depend on isValidating and allCompleted
+  }, [isValidationRunning, currentStepIndexRef.current]) // Dependencies for this effect
 
+  // Effect to automatically navigate when all validations are complete
   useEffect(() => {
-    if (allCompleted) {
-      // Automatically proceed to the next step after a short delay
-      timeoutRef.current = setTimeout(() => {
+    if (!isValidationRunning && overallProgress === 100) {
+      const finalNavigationTimeout = setTimeout(() => {
         onNext()
-      }, 1500) // Wait 1.5 seconds before moving to the next step
+      }, 1000) // Small delay before navigating
+      return () => clearTimeout(finalNavigationTimeout)
     }
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-    }
-  }, [allCompleted, onNext])
+  }, [isValidationRunning, overallProgress, onNext])
 
   const startValidation = () => {
-    setIsValidating(true)
-    setAllCompleted(false) // Reset completion status
-    setProgress(0) // Reset progress
-    setSteps(validationStepsData.map((step) => ({ ...step, status: "pending" }))) // Reset step statuses
+    setValidationSteps(initialValidationSteps.map((step) => ({ ...step, progress: 0, status: "pending" })))
+    setOverallProgress(0)
+    currentStepIndexRef.current = 0
+    setIsValidationRunning(true)
   }
+
+  const allStepsCompleted = validationSteps.every((step) => step.status === "completed")
 
   return (
     <Card className="w-full max-w-4xl mx-auto shadow-lg">
@@ -93,16 +141,33 @@ export function AzureValidation({ onNext, onPrev }: AzureValidationProps) {
         </p>
       </CardHeader>
       <CardContent className="p-6 space-y-6">
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
+            <span>Overall Progress</span>
+            <span>{Math.round(overallProgress)}%</span>
+          </div>
+          <Progress
+            value={overallProgress}
+            className="h-2 bg-starbucks-green/20"
+            indicatorClassName="bg-starbucks-green"
+          />
+        </div>
         <div className="space-y-4">
-          {steps.map((step) => (
+          {validationSteps.map((step) => (
             <div
               key={step.id}
               className="flex items-center justify-between p-3 border rounded-md bg-gray-50 dark:bg-gray-800"
             >
               <div className="flex items-center gap-3">
-                {step.status === "pending" && <Loader2 className="h-5 w-5 animate-spin text-starbucks-gold" />}
-                {step.status === "completed" && <CheckCircle className="h-5 w-5 text-starbucks-green" />}
+                {step.status === "completed" && <CheckCircle2 className="h-5 w-5 text-green-500" />}
                 {step.status === "failed" && <XCircle className="h-5 w-5 text-red-500" />}
+                {(step.status === "pending" || step.status === "in-progress") && (
+                  <Loader2
+                    className={cn("h-5 w-5 text-gray-500 animate-spin", {
+                      "text-starbucks-green": step.status === "in-progress",
+                    })}
+                  />
+                )}
                 <span
                   className={cn("font-medium", {
                     "text-gray-500 dark:text-gray-400": step.status === "pending",
@@ -116,36 +181,33 @@ export function AzureValidation({ onNext, onPrev }: AzureValidationProps) {
               {step.status === "completed" && (
                 <span className="text-sm text-gray-600 dark:text-gray-400">Completed</span>
               )}
+              {step.status === "in-progress" && (
+                <span className="text-sm text-starbucks-green">In Progress ({Math.round(step.progress)}%)</span>
+              )}
+              {step.status === "pending" && <span className="text-sm text-gray-500 dark:text-gray-400">Pending</span>}
             </div>
           ))}
-        </div>
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
-            <span>Overall Progress</span>
-            <span>{progress}%</span>
-          </div>
-          <Progress value={progress} className="h-2 bg-starbucks-green/20" indicatorClassName="bg-starbucks-green" />
         </div>
         <div className="flex justify-between pt-4">
           <Button
             variant="outline"
             onClick={onPrev}
             className="text-starbucks-dark-green border-starbucks-green hover:bg-starbucks-green/10 bg-transparent"
-            disabled={isValidating} // Disable back button during validation
+            disabled={isValidationRunning}
           >
             Previous
           </Button>
-          {!isValidating && !allCompleted && (
+          {!isValidationRunning && !allStepsCompleted && (
             <Button onClick={startValidation} className="bg-starbucks-green hover:bg-starbucks-dark-green">
               Start Validation
             </Button>
           )}
-          {isValidating && (
+          {isValidationRunning && (
             <Button disabled className="bg-starbucks-green/50">
               Validating...
             </Button>
           )}
-          {allCompleted && (
+          {allStepsCompleted && (
             <Button disabled className="bg-starbucks-green">
               Validation Complete!
             </Button>

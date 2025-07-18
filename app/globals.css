@@ -5,135 +5,169 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
 
     /* Starbucks Colors */
-    --starbucks-green: 150 60% 35%; /* A vibrant green */
-    --starbucks-dark-green: 150 60% 25%; /* A darker green */
-    --starbucks-cream: 40 20% 95%; /* A light cream */
-    --starbucks-gold: 40 80% 60%; /* A warm gold */
-    --starbucks-brown: 30 20% 30%; /* A coffee brown */
-
-    /* Sidebar Colors */
-    --sidebar-background: var(--starbucks-dark-green);
-    --sidebar-foreground: var(--starbucks-cream);
-    --sidebar-primary: var(--starbucks-cream);
-    --sidebar-primary-foreground: var(--starbucks-dark-green);
-    --sidebar-accent: var(--starbucks-green);
-    --sidebar-accent-foreground: var(--starbucks-cream);
-    --sidebar-border: var(--starbucks-green);
-    --sidebar-ring: var(--starbucks-gold);
+    --starbucks-green: 145 63% 35%; /* A vibrant green */
+    --starbucks-dark-green: 145 63% 25%; /* A darker green for accents */
+    --starbucks-cream: 40 20% 95%; /* A light cream color */
+    --starbucks-gold: 40 80% 60%; /* A golden yellow */
+    --starbucks-brown: 25 40% 30%; /* A rich brown */
+    --starbucks-red: 0 70% 50%; /* A deep red for alerts/errors */
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 0 0% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
 
-    /* Starbucks Dark Mode Colors */
-    --starbucks-green: 150 60% 45%; /* Slightly lighter green for dark mode */
-    --starbucks-dark-green: 150 60% 35%; /* Darker green for dark mode */
-    --starbucks-cream: 40 10% 80%; /* Darker cream for dark mode */
-    --starbucks-gold: 40 80% 50%; /* Slightly desaturated gold */
-    --starbucks-brown: 30 20% 20%; /* Darker coffee brown */
-
-    /* Sidebar Dark Mode Colors */
-    --sidebar-background: var(--starbucks-brown); /* Darker background for sidebar */
-    --sidebar-foreground: var(--starbucks-cream);
-    --sidebar-primary: var(--starbucks-cream);
-    --sidebar-primary-foreground: var(--starbucks-brown);
-    --sidebar-accent: var(--starbucks-dark-green);
-    --sidebar-accent-foreground: var(--starbucks-cream);
-    --sidebar-border: var(--starbucks-dark-green);
-    --sidebar-ring: var(--starbucks-gold);
+    /* Starbucks Colors for Dark Mode - Adjusted for readability */
+    --starbucks-green: 145 63% 45%; /* Slightly brighter green for dark mode */
+    --starbucks-dark-green: 145 63% 35%; /* Slightly brighter dark green */
+    --starbucks-cream: 40 20% 85%; /* Slightly darker cream */
+    --starbucks-gold: 40 80% 70%; /* Brighter gold */
+    --starbucks-brown: 25 40% 40%; /* Slightly brighter brown */
+    --starbucks-red: 0 70% 60%; /* Slightly brighter red */
   }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .text-starbucks-green {
+    color: hsl(var(--starbucks-green));
+  }
+  .bg-starbucks-green {
+    background-color: hsl(var(--starbucks-green));
+  }
+  .hover\:bg-starbucks-green\/10:hover {
+    background-color: hsla(var(--starbucks-green), 0.1);
+  }
+  .border-starbucks-green {
+    border-color: hsl(var(--starbucks-green));
+  }
+
+  .text-starbucks-dark-green {
+    color: hsl(var(--starbucks-dark-green));
+  }
+  .bg-starbucks-dark-green {
+    background-color: hsl(var(--starbucks-dark-green));
+  }
+  .hover\:bg-starbucks-dark-green:hover {
+    background-color: hsl(var(--starbucks-dark-green));
+  }
+
+  .text-starbucks-cream {
+    color: hsl(var(--starbucks-cream));
+  }
+  .bg-starbucks-cream {
+    background-color: hsl(var(--starbucks-cream));
+  }
+
+  .text-starbucks-gold {
+    color: hsl(var(--starbucks-gold));
+  }
+
+  .text-starbucks-brown {
+    color: hsl(var(--starbucks-brown));
+  }
+
+  .text-starbucks-red {
+    color: hsl(var(--starbucks-red));
+  }
+
+  /* Custom scrollbar styles for the entire app */
+  .app-container::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  .app-container::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+    border-radius: 10px;
+  }
+
+  .app-container::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--starbucks-green));
+    border-radius: 10px;
+    border: 3px solid hsl(var(--background));
+  }
+
+  .app-container::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--starbucks-dark-green));
+  }
+
+  /* For Firefox */
+  .app-container {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--starbucks-green)) hsl(var(--background));
+  }
+
+  /* Ensure content can extend horizontally */
+  .wide-content {
+    min-width: fit-content; /* Allows content to define its minimum width */
   }
 }
 
-/* Custom scrollbar styles for the entire app */
-.app-container::-webkit-scrollbar {
-  height: 12px; /* For horizontal scrollbar */
-  width: 12px; /* For vertical scrollbar */
-}
-
-.app-container::-webkit-scrollbar-track {
-  background: var(--starbucks-cream); /* Starbucks cream for track */
-  border-radius: 10px;
-}
-
-.app-container::-webkit-scrollbar-thumb {
-  background-color: var(--starbucks-green); /* Starbucks green for thumb */
-  border-radius: 10px;
-  border: 3px solid var(--starbucks-cream); /* Border around thumb */
-}
-
-.app-container::-webkit-scrollbar-thumb:hover {
-  background-color: var(--starbucks-dark-green); /* Darker green on hover */
-}
-
-/* For Firefox */
-.app-container {
-  scrollbar-width: thin;
-  scrollbar-color: var(--starbucks-green) var(--starbucks-cream);
-}
-
-/* Ensure content can extend horizontally */
-.wide-content {
-  min-width: fit-content;
+@layer components {
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
 }
